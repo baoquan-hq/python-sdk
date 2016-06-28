@@ -10,7 +10,7 @@ setup(
     author_email='sbwdlihao@gmail.com',
     keywords='baoquan eagle sdk',
     description='sdk for members to use the service of baoquan.com',
-    install_requires=['rsa==3.4.2', 'requests==2.10.0'],
+    install_requires=['pyOpenSSL==16.0.0', 'requests==2.10.0'],
     tests_require=['fake-factory==0.5.7'],
     include_package_data=True
 )

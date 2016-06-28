@@ -1,4 +1,4 @@
-import rsa
+from OpenSSL import crypto
 import base64
 import hashlib
 
@@ -12,8 +12,8 @@ def sign(key_path, data):
     """
     with open(key_path) as private_file:
         key_data = private_file.read()
-    private_key = rsa.PrivateKey.load_pkcs1(key_data)
-    return base64.b64encode(rsa.sign(data.encode('utf-8'), private_key, 'SHA-256')).decode()
+    private_key = crypto.load_privatekey(crypto.FILETYPE_PEM, key_data)
+    return base64.b64encode(crypto.sign(private_key, data.encode('utf-8'), 'sha256')).decode()
 
 
 def checksum(bytes):
