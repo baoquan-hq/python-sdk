@@ -5,6 +5,8 @@ Welcome to use Baoquan.com API SDK.
 ## Create Baoquan Client
 
 ```python
+from baoquan import BaoquanClient
+
 client = BaoquanClient()
 client.host = 'http://baoquan.com'
 client.access_key = 'fsBswNzfECKZH9aWyh47fc' # replace it with your access key

@@ -4,9 +4,9 @@ import random
 import time
 import datetime
 from faker import Factory
-from src.main.baoquan_client import BaoquanClient
-from src.main.exception.server_exception import ServerException
-from src.main.exception.invalid_argument_exception import InvalidArgumentException
+from baoquan.main.baoquan_client import BaoquanClient
+from baoquan.main.exception.server_exception import ServerException
+from baoquan.main.exception.invalid_argument_exception import InvalidArgumentException
 
 
 def _random_id_card():

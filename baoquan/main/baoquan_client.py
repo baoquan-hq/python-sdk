@@ -2,9 +2,9 @@ import uuid
 import requests
 import datetime
 import json
-from src.main.exception.server_exception import ServerException
-from src.main.exception.invalid_argument_exception import InvalidArgumentException
-from src.main.util import utils
+from baoquan.main.exception.server_exception import ServerException
+from baoquan.main.exception.invalid_argument_exception import InvalidArgumentException
+from baoquan.main.util import utils
 
 
 def _check_create_attestation_payload(payload):
