@@ -135,7 +135,8 @@ class BaoquanClient(object):
         self.version = 'v1'
         self.access_key = None
         self._request_id_generator = uuid.uuid4
-        self.pem_path = None
+        self._pem_path = None
+        self._private_key_data = None
 
     @property
     def request_id_generator(self):
@@ -145,6 +146,17 @@ class BaoquanClient(object):
     def request_id_generator(self, request_id_generator):
         assert request_id_generator is not None
         self._request_id_generator = request_id_generator
+
+    @property
+    def pem_path(self):
+        return self._pem_path
+
+    @pem_path.setter
+    def pem_path(self, pem_path):
+        assert pem_path is not None
+        self._pem_path = pem_path
+        with open(self._pem_path) as private_file:
+            self._private_key_data = private_file.read()
 
     def create_attestation(self, payload, attachments=None):
         """
@@ -207,7 +219,7 @@ class BaoquanClient(object):
         payload_json = json.dumps(payload)
         # build the data to sign
         sign_data = 'POST' + path + request_id + self.access_key + str(tonce) + payload_json
-        signature = utils.sign(self.pem_path, sign_data)
+        signature = utils.sign(self._private_key_data, sign_data)
         post_data = {
             'request_id': request_id,
             'access_key': self.access_key,
