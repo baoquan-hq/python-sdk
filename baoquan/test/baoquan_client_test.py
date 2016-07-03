@@ -522,3 +522,40 @@ class TestBaoquanClient(unittest.TestCase):
             ]
         })
         self.assertIsNotNone(response['data']['no'])
+
+    def test_get_attestation0(self):
+        with self.assertRaises(ServerException) as ae:
+            self._client.get_attestation('DB0C8DB14E3C44')
+        self.assertEqual(ae.exception.message, '保全不存在')
+
+    def test_get_attestation1(self):
+        response = self._client.get_attestation('DB0C8DB14E3C44C7B9FBBE30EB179241')
+        self.assertIsNotNone(response)
+        self.assertIsNotNone(response['data'])
+        self.assertEqual('DB0C8DB14E3C44C7B9FBBE30EB179241', response['data']['no'])
+
+    def test_get_attestation2(self):
+        response = self._client.get_attestation('DB0C8DB14E3C44C7B9FBBE30EB179241', [])
+        self.assertIsNotNone(response)
+        self.assertIsNotNone(response['data'])
+        self.assertEqual('DB0C8DB14E3C44C7B9FBBE30EB179241', response['data']['no'])
+        self.assertIsNone(response['data']['identities'])
+        self.assertIsNone(response['data']['factoids'])
+        self.assertIsNone(response['data']['attachments'])
+
+    def test_get_attestation3(self):
+        response = self._client.get_attestation('DB0C8DB14E3C44C7B9FBBE30EB179241', ['factoids'])
+        self.assertIsNotNone(response)
+        self.assertIsNotNone(response['data'])
+        self.assertEqual('DB0C8DB14E3C44C7B9FBBE30EB179241', response['data']['no'])
+        self.assertIsNone(response['data']['identities'])
+        self.assertIsNotNone(response['data']['factoids'])
+        self.assertIsNone(response['data']['attachments'])
+
+    def test_download_attestation0(self):
+        response = self._client.download_attestation('DB0C8DB14E3C44C7B9FBBE30EB179241')
+        self.assertIsNotNone(response)
+        self.assertIsNotNone(response['file_name'])
+        self.assertIsInstance(response['file_content'], bytes)
+        with open(response['file_name'], 'wb') as f:
+            f.write(response['file_content'])

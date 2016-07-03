@@ -8,7 +8,7 @@ Welcome to use Baoquan.com API SDK.
 from baoquan import BaoquanClient
 
 client = BaoquanClient()
-client.host = 'http://baoquan.com'
+client.host = 'https://baoquan.com'
 client.access_key = 'fsBswNzfECKZH9aWyh47fc' # replace it with your access key
 client.pem_path = 'path/to/rsa_private.pem'
 ```
@@ -107,9 +107,36 @@ except ServerException as e:
     print(e.message)
 ```
 
-## Apply Ca
+## Get attestation data
 
-### Apply personal Ca
+```python
+try:
+    response = client.get_attestation('DB0C8DB14E3C44C7B9FBBE30EB179241')
+    print(response['data'])
+except ServerException as e:
+    print(e.message)
+```
+
+The second param value of getAttestation can be none, empty array, array of field "identities", "factoids", "attachments"
+if none, the response contains all filed value
+if empty array, the response contains all filed value except for field "identities", "factoids", "attachments"
+if array of one or more value in "identities", "factoids", "attachments", the response contains the respond field value
+if you just want to get the block chain hash you should set null of the second param, because server need more time to connect database, decrypt data when you want to get "identities", "factoids", "attachments"
+
+## Download attestation
+
+```python
+try:
+    response = client.download_attestation('DB0C8DB14E3C44C7B9FBBE30EB179241')
+    with open(response['file_name'], 'wb') as f:
+        f.write(response['file_content'])
+except ServerException as e:
+    print(e.message)
+```
+
+## Apply ca
+
+### Apply personal ca
 
 ```python
 try:
@@ -125,7 +152,7 @@ except ServerException as e:
     print(e.message)
 ```
 
-### Apply enterprise Ca
+### Apply enterprise ca
 
 ```python
 try:

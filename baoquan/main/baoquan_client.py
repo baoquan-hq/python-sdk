@@ -2,6 +2,7 @@ import uuid
 import requests
 import datetime
 import json
+import re
 from baoquan.main.exception.server_exception import ServerException
 from baoquan.main.exception.invalid_argument_exception import InvalidArgumentException
 from baoquan.main.util import utils
@@ -128,6 +129,9 @@ def _build_stream_body_map(attachments):
             multipart_files['attachments[%s][]' % i] = attachments[i]
     return multipart_files
 
+def _raise_server_exception(request_id, response):
+    response_json = response.json()
+    raise ServerException(request_id, response_json['message'], response_json['timestamp'])
 
 class BaoquanClient(object):
     def __init__(self):
@@ -169,7 +173,7 @@ class BaoquanClient(object):
         _check_create_attestation_payload(payload)
         payload['attachments'] = _build_check_sum(payload, attachments)
         stream_body_map = _build_stream_body_map(attachments)
-        return self._post('attestations', payload, stream_body_map)
+        return self._json('attestations', payload, stream_body_map)
 
     def add_factoids(self, payload, attachments=None):
         """
@@ -182,7 +186,37 @@ class BaoquanClient(object):
         _check_add_factoids_payload(payload)
         payload['attachments'] = _build_check_sum(payload, attachments)
         stream_body_map = _build_stream_body_map(attachments)
-        return self._post('factoids', payload, stream_body_map)
+        return self._json('factoids', payload, stream_body_map)
+
+    def get_attestation(self, ano, fields=None):
+        """
+        get attestation raw data
+        :param ano:
+        :param fields:
+        :return:
+        :raise: ServerException
+        """
+        if ano is None:
+            raise InvalidArgumentException('ano can not be null')
+        payload = {
+            'ano': ano,
+            'fields': fields
+        }
+        return self._json('attestation', payload)
+
+    def download_attestation(self, ano):
+        """
+        download attestation file which is hashed to block chain
+        :param ano:
+        :return:
+        :raise: ServerException
+        """
+        if ano is None:
+            raise InvalidArgumentException('ano can not be null')
+        payload = {
+            'ano': ano,
+        }
+        return self._file('attestation/download', payload)
 
     def apply_ca(self, payload, seal=None):
         """
@@ -200,21 +234,50 @@ class BaoquanClient(object):
             stream_body_map = {
                 'seal': [seal]
             }
-        return self._post('cas', payload, stream_body_map)
+        return self._json('cas', payload, stream_body_map)
 
-    def _post(self, api_name, payload, attachments):
+    def _json(self, api_name, payload, attachments=None):
         """
-        post
+        json result
         :param api_name:
         :param payload:
         :param attachments:
         :return:
         :raise: ServerException
         """
+        request_id = str(self.request_id_generator())
+        response = self._post(request_id, api_name, payload, attachments)
+        if response.status_code != 200:
+            _raise_server_exception(request_id, response)
+        else:
+            return response.json()
+
+    def _file(self, api_name, payload):
+        request_id = str(self.request_id_generator())
+        response = self._post(request_id, api_name, payload)
+        if response.status_code != 200:
+            _raise_server_exception(request_id, response)
+        else:
+            result = {}
+            header = response.headers['Content-Disposition']
+            match = re.match(r'.*filename="(.*)".*', header)
+            if match:
+                result['file_name'] = match.group(1)
+            result['file_content'] = response.content
+            return result
+
+    def _post(self, request_id, api_name, payload, attachments=None):
+        """
+        post request
+        :param request_id:
+        :param api_name:
+        :param payload:
+        :param attachments:
+        :return:
+        """
         assert self.access_key is not None
         assert self.pem_path is not None
         path = '/api/%s/%s' % (self.version, api_name)
-        request_id = str(self.request_id_generator())
         tonce = int(datetime.datetime.now().timestamp())
         payload_json = json.dumps(payload)
         # build the data to sign
@@ -235,9 +298,4 @@ class BaoquanClient(object):
                 if isinstance(attachments[name], list):
                     for item in attachments[name]:
                         files.append((name, (item['resource_name'], item['resource'], item['resource_content_type'])))
-        response = requests.post(uri, data=post_data, files=files)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            response_json = response.json()
-            raise ServerException(request_id, response_json['message'], response_json['timestamp'])
+        return requests.post(uri, data=post_data, files=files)
