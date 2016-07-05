@@ -1,6 +1,9 @@
 from OpenSSL import crypto
 import base64
 import hashlib
+import random
+import datetime
+import time
 
 
 def sign(key_data, data):
@@ -14,14 +17,14 @@ def sign(key_data, data):
     return base64.b64encode(crypto.sign(private_key, data.encode('utf-8'), 'sha256')).decode()
 
 
-def checksum(bytes):
+def checksum(data):
     """
     use sha256 to create the checksum of file content
-    :param bytes: file content as bytes
+    :param data: file content as bytes
     :return: hex hash
     """
     m = hashlib.sha256()
-    m.update(bytes)
+    m.update(data)
     return m.hexdigest()
 
 
