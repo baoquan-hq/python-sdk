@@ -97,7 +97,9 @@ def _build_check_sum(payload, attachments):
             factoids_count = len(factoids)
         for i in range(factoids_count):
             i_attachments = attachments.get(i)
-            i_signs = signs.get(i)
+            i_signs = None
+            if isinstance(signs, dict):
+                i_signs = signs.get(i)
             if isinstance(i_attachments, list):
                 objects = []
                 for j in range(len(i_attachments)):

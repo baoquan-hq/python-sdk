@@ -147,6 +147,35 @@ class TestBaoquanClient(unittest.TestCase):
             })
         self.assertEqual(ae.exception.message, 'invalid data : user.phone_number required')
 
+    def test_create_attestation8(self):
+        response = self._client.create_attestation({
+            'template_id': '2hSWTZ4oqVEJKAmK2RiyT4',
+            'identities': {
+                'ID': '42012319800127691X',
+                'MO': '15857112383'
+            },
+            'factoids': [
+                {
+                    'type': 'user',
+                    'data': {
+                        'name': '张三',
+                        'phone_number': '13234568732',
+                        'registered_at': '1466674609',
+                        'username': 'tom'
+                    }
+                }
+            ]
+        }, {
+            0: [
+                {
+                    'resource': open(os.path.dirname(__file__) + '/resources/contract.pdf', 'rb').read(),
+                    'resource_name': 'contract.pdf',
+                    'resource_content_type': 'application/pdf'
+                }
+            ]
+        })
+        self.assertIsNotNone(response['data']['no'])
+
     def test_add_factoids0(self):
         with self.assertRaises(InvalidArgumentException) as ae:
             self._client.add_factoids({})
