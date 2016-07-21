@@ -67,17 +67,6 @@ def _check_apply_ca_payload(payload):
         raise InvalidArgumentException('payload.link_email can not be empty')
 
 
-def _check_seal(seal):
-    if not isinstance(seal, dict):
-        raise InvalidArgumentException('seal can not be null when ca type is enterprise')
-    filename = seal.get('resource_name')
-    if not isinstance(filename, str):
-        raise InvalidArgumentException('seal file name must be like xxx.png or xxx.jpg')
-    file_type = filename[filename.index('.') + 1:]
-    if file_type != 'jpg' and file_type != 'png':
-        raise InvalidArgumentException('seal file name must be like xxx.png or xxx.jpg')
-
-
 def _build_check_sum(payload, attachments):
     """
     build check sum
@@ -229,8 +218,6 @@ class BaoquanClient(object):
         :raise: ServerException
         """
         _check_apply_ca_payload(payload)
-        if payload['type'] == 'ENTERPRISE':
-            _check_seal(seal)
         stream_body_map = None
         if seal is not None:
             stream_body_map = {
