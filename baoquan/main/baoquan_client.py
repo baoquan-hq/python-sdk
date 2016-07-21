@@ -53,10 +53,6 @@ def _check_apply_ca_payload(payload):
             raise InvalidArgumentException('payload.name can not be empty')
         if payload.get('ic_code') is None:
             raise InvalidArgumentException('payload.ic_code can not be empty')
-        if payload.get('org_code') is None:
-            raise InvalidArgumentException('payload.org_code can not be empty')
-        if payload.get('tax_code') is None:
-            raise InvalidArgumentException('payload.tax_code can not be empty')
     if payload.get('link_name') is None:
         raise InvalidArgumentException('payload.link_name can not be empty')
     if payload.get('link_id_card') is None:
