@@ -16,6 +16,8 @@ def _check_create_attestation_payload(payload):
     """
     if not isinstance(payload, dict):
         raise InvalidArgumentException('payload can not be empty')
+    if payload.get('unique_id') is None:
+        raise InvalidArgumentException('payload.unique_id can not be empty')
     if payload.get('template_id') is None:
         raise InvalidArgumentException('payload.template_id can not be empty')
     if payload.get('identities') is None:

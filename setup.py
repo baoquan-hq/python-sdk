@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='eagle-sdk',
-    version='1.0.7',
+    version='1.0.8',
     packages=find_packages(),
     url='https://github.com/baoquan-hq/python-sdk.git',
     license='gpl-3.0',

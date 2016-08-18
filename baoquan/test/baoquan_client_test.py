@@ -1,5 +1,6 @@
 import os
 import unittest
+import uuid
 
 from faker import Factory
 
@@ -26,30 +27,40 @@ class TestBaoquanClient(unittest.TestCase):
     def test_create_attestation1(self):
         with self.assertRaises(InvalidArgumentException) as ae:
             self._client.create_attestation({})
-        self.assertEqual(ae.exception.message, 'payload.template_id can not be empty')
+        self.assertEqual(ae.exception.message, 'payload.unique_id can not be empty')
 
     def test_create_attestation2(self):
         with self.assertRaises(InvalidArgumentException) as ae:
             self._client.create_attestation({
-                'template_id': '2hSWTZ4oqVEJKAmK2RiyT4'
+                'unique_id': str(uuid.uuid4())
             })
-        self.assertEqual(ae.exception.message, 'payload.identities can not be empty')
+        self.assertEqual(ae.exception.message, 'payload.template_id can not be empty')
 
     def test_create_attestation3(self):
         with self.assertRaises(InvalidArgumentException) as ae:
             self._client.create_attestation({
+                'unique_id': str(uuid.uuid4()),
+                'template_id': '2hSWTZ4oqVEJKAmK2RiyT4'
+            })
+        self.assertEqual(ae.exception.message, 'payload.identities can not be empty')
+
+    def test_create_attestation4(self):
+        with self.assertRaises(InvalidArgumentException) as ae:
+            self._client.create_attestation({
+                'unique_id': str(uuid.uuid4()),
                 'template_id': '2hSWTZ4oqVEJKAmK2RiyT4',
                 'identities': {}
             })
         self.assertEqual(ae.exception.message, 'payload.factoids can not be empty')
 
-    def test_create_attestation4(self):
+    def test_create_attestation5(self):
         """
         template should be exist
         :return:
         """
         with self.assertRaises(ServerException) as ae:
             self._client.create_attestation({
+                'unique_id': str(uuid.uuid4()),
                 'template_id': '2hSWTZ4oqVEJ',
                 'identities': {
                     'ID': '42012319800127691X',
@@ -57,6 +68,7 @@ class TestBaoquanClient(unittest.TestCase):
                 },
                 'factoids': [
                     {
+                        'unique_id': str(uuid.uuid4()),
                         'type': 'user',
                         'data': {
                             'name': '张三',
@@ -69,7 +81,7 @@ class TestBaoquanClient(unittest.TestCase):
             })
         self.assertEqual(ae.exception.message, '模板不存在')
 
-    def test_create_attestation5(self):
+    def test_create_attestation6(self):
         """
         factoid data should meet with template schema
         when you edit template schemas on line and set user.phone_number is required
@@ -78,6 +90,7 @@ class TestBaoquanClient(unittest.TestCase):
         """
         with self.assertRaises(ServerException) as ae:
             self._client.create_attestation({
+                'unique_id': str(uuid.uuid4()),
                 'template_id': '2hSWTZ4oqVEJKAmK2RiyT4',
                 'identities': {
                     'ID': '42012319800127691X',
@@ -85,6 +98,7 @@ class TestBaoquanClient(unittest.TestCase):
                 },
                 'factoids': [
                     {
+                        'unique_id': str(uuid.uuid4()),
                         'type': 'user',
                         'data': {
                             'name': '张三',
@@ -96,13 +110,14 @@ class TestBaoquanClient(unittest.TestCase):
             })
         self.assertEqual(ae.exception.message, 'invalid data : user.phone_number required')
 
-    def test_create_attestation6(self):
+    def test_create_attestation7(self):
         """
         factoid data type should be in template schemas
         :return:
         """
         with self.assertRaises(ServerException) as ae:
             self._client.create_attestation({
+                'unique_id': str(uuid.uuid4()),
                 'template_id': '2hSWTZ4oqVEJKAmK2RiyT4',
                 'identities': {
                     'ID': '42012319800127691X',
@@ -110,6 +125,7 @@ class TestBaoquanClient(unittest.TestCase):
                 },
                 'factoids': [
                     {
+                        'unique_id': str(uuid.uuid4()),
                         'type': 'product',
                         'data': {
                             'name': '浙金网',
@@ -121,7 +137,7 @@ class TestBaoquanClient(unittest.TestCase):
             })
         self.assertEqual(ae.exception.message, 'invalid factoid type: product corresponding schema not exist')
 
-    def test_create_attestation7(self):
+    def test_create_attestation8(self):
         """
         factoid data should meet with template schema
         when user.phone_number is required but you only upload product
@@ -130,6 +146,7 @@ class TestBaoquanClient(unittest.TestCase):
         """
         with self.assertRaises(ServerException) as ae:
             self._client.create_attestation({
+                'unique_id': str(uuid.uuid4()),
                 'template_id': '5Yhus2mVSMnQRXobRJCYgt',
                 'identities': {
                     'ID': '42012319800127691X',
@@ -137,6 +154,7 @@ class TestBaoquanClient(unittest.TestCase):
                 },
                 'factoids': [
                     {
+                        'unique_id': str(uuid.uuid4()),
                         'type': 'product',
                         'data': {
                             'name': '浙金网',
@@ -147,8 +165,9 @@ class TestBaoquanClient(unittest.TestCase):
             })
         self.assertEqual(ae.exception.message, 'invalid data : user.phone_number required')
 
-    def test_create_attestation8(self):
+    def test_create_attestation9(self):
         response = self._client.create_attestation({
+            'unique_id': str(uuid.uuid4()),
             'template_id': '2hSWTZ4oqVEJKAmK2RiyT4',
             'identities': {
                 'ID': '42012319800127691X',
@@ -156,6 +175,7 @@ class TestBaoquanClient(unittest.TestCase):
             },
             'factoids': [
                 {
+                    'unique_id': str(uuid.uuid4()),
                     'type': 'user',
                     'data': {
                         'name': '张三',
@@ -175,6 +195,53 @@ class TestBaoquanClient(unittest.TestCase):
             ]
         })
         self.assertIsNotNone(response['data']['no'])
+
+    def test_create_attestation10(self):
+        """
+        create attestation with the same unique id will return the same attestation no
+        :return:
+        """
+        payload = {
+            'unique_id': str(uuid.uuid4()),
+            'template_id': '2hSWTZ4oqVEJKAmK2RiyT4',
+            'identities': {
+                'ID': '42012319800127691X',
+                'MO': '15857112383'
+            },
+            'factoids': [
+                {
+                    'unique_id': str(uuid.uuid4()),
+                    'type': 'user',
+                    'data': {
+                        'name': '张三',
+                        'phone_number': '13234568732',
+                        'registered_at': '1466674609',
+                        'username': 'tom'
+                    }
+                }
+            ]
+        }
+        response = self._client.create_attestation(payload, {
+            0: [
+                {
+                    'resource': open(os.path.dirname(__file__) + '/resources/contract.pdf', 'rb').read(),
+                    'resource_name': 'contract.pdf',
+                    'resource_content_type': 'application/pdf'
+                }
+            ]
+        })
+        self.assertIsNotNone(response['data']['no'])
+
+        response1 = self._client.create_attestation(payload, {
+            0: [
+                {
+                    'resource': open(os.path.dirname(__file__) + '/resources/contract.pdf', 'rb').read(),
+                    'resource_name': 'contract.pdf',
+                    'resource_content_type': 'application/pdf'
+                }
+            ]
+        })
+        self.assertEqual(response1['data']['no'], response['data']['no'])
 
     def test_add_factoids0(self):
         with self.assertRaises(InvalidArgumentException) as ae:
@@ -198,6 +265,7 @@ class TestBaoquanClient(unittest.TestCase):
                 'ano': 'D58FFFD28A8949',
                 'factoids': [
                     {
+                        'unique_id': str(uuid.uuid4()),
                         'type': 'product',
                         'data': {
                             'name': '浙金网',
@@ -218,6 +286,7 @@ class TestBaoquanClient(unittest.TestCase):
                 'ano': '4E6457A5A9B94FBFB64E0D08BDFA2BD4',
                 'factoids': [
                     {
+                        'unique_id': str(uuid.uuid4()),
                         'type': 'product',
                         'data': {
                             'name': '浙金网',
@@ -234,6 +303,7 @@ class TestBaoquanClient(unittest.TestCase):
         :return:
         """
         response = self._client.create_attestation({
+            'unique_id': str(uuid.uuid4()),
             'template_id': '5Yhus2mVSMnQRXobRJCYgt',
             'identities': {
                 'ID': '42012319800127691X',
@@ -241,6 +311,7 @@ class TestBaoquanClient(unittest.TestCase):
             },
             'factoids': [
                 {
+                    'unique_id': str(uuid.uuid4()),
                     'type': 'product',
                     'data': {
                         'name': '浙金网',
@@ -256,6 +327,7 @@ class TestBaoquanClient(unittest.TestCase):
                 'ano': ano,
                 'factoids': [
                     {
+                        'unique_id': str(uuid.uuid4()),
                         'type': 'product',
                         'data': {
                             'name': '浙金网',
@@ -268,10 +340,12 @@ class TestBaoquanClient(unittest.TestCase):
 
     def test_add_factoids5(self):
         """
-        create attestation and then add factoid
+        same unique id will return success
         :return:
         """
+        fuid = str(uuid.uuid4())
         response = self._client.create_attestation({
+            'unique_id': str(uuid.uuid4()),
             'template_id': '5Yhus2mVSMnQRXobRJCYgt',
             'identities': {
                 'ID': '42012319800127691X',
@@ -279,6 +353,48 @@ class TestBaoquanClient(unittest.TestCase):
             },
             'factoids': [
                 {
+                    'unique_id': fuid,
+                    'type': 'product',
+                    'data': {
+                        'name': '浙金网',
+                        'description': 'p2g理财平台'
+                    }
+                }
+            ],
+            'completed': False
+        })
+        ano = response['data']['no']
+        response = self._client.add_factoids({
+                'ano': ano,
+                'factoids': [
+                    {
+                        'unique_id': fuid,
+                        'type': 'product',
+                        'data': {
+                            'name': '浙金网',
+                            'description': 'p2g理财平台'
+                        }
+                    }
+                ],
+                'completed': False
+            })
+        self.assertTrue(response['data']['success'])
+
+    def test_add_factoids6(self):
+        """
+        create attestation and then add factoid
+        :return:
+        """
+        response = self._client.create_attestation({
+            'unique_id': str(uuid.uuid4()),
+            'template_id': '5Yhus2mVSMnQRXobRJCYgt',
+            'identities': {
+                'ID': '42012319800127691X',
+                'MO': '15857112383'
+            },
+            'factoids': [
+                {
+                    'unique_id': str(uuid.uuid4()),
                     'type': 'product',
                     'data': {
                         'name': '浙金网',
@@ -293,6 +409,7 @@ class TestBaoquanClient(unittest.TestCase):
             'ano': ano,
             'factoids': [
                 {
+                    'unique_id': str(uuid.uuid4()),
                     'type': 'user',
                     'data': {
                         'name': '张三',
@@ -326,21 +443,6 @@ class TestBaoquanClient(unittest.TestCase):
         self.assertEqual(ae.exception.message, 'payload.name can not be empty')
 
     def test_apply_ca3(self):
-        with self.assertRaises(InvalidArgumentException) as ae:
-            self._client.apply_ca({
-                'type': 'ENTERPRISE',
-                'name': '浙金网',
-                'ic_code': '91330105311263043J',
-                'org_code': '311263043',
-                'tax_code': '330105311263043',
-                'link_name': self._faker.name(),
-                'link_id_card': random_id_card(),
-                'link_phone': self._faker.phone_number(),
-                'link_email': self._faker.email(),
-            })
-        self.assertEqual(ae.exception.message, 'seal can not be null when ca type is enterprise')
-
-    def test_apply_ca4(self):
         response = self._client.apply_ca({
             'type': 'PERSONAL',
             'link_name': self._faker.name(),
@@ -350,7 +452,7 @@ class TestBaoquanClient(unittest.TestCase):
         })
         self.assertIsNotNone(response['data']['no'])
 
-    def test_apply_ca5(self):
+    def test_apply_ca4(self):
         response = self._client.apply_ca({
             'type': 'ENTERPRISE',
             'name': '浙金网',
@@ -370,6 +472,7 @@ class TestBaoquanClient(unittest.TestCase):
 
     def test_sign0(self):
         response = self._client.create_attestation({
+            'unique_id': str(uuid.uuid4()),
             'template_id': '2hSWTZ4oqVEJKAmK2RiyT4',
             'identities': {
                 'ID': '42012319800127691X',
@@ -377,6 +480,7 @@ class TestBaoquanClient(unittest.TestCase):
             },
             'factoids': [
                 {
+                    'unique_id': str(uuid.uuid4()),
                     'type': 'user',
                     'data': {
                         'name': '张三',
@@ -407,6 +511,7 @@ class TestBaoquanClient(unittest.TestCase):
 
     def test_sign1(self):
         response = self._client.create_attestation({
+            'unique_id': str(uuid.uuid4()),
             'template_id': '2hSWTZ4oqVEJKAmK2RiyT4',
             'identities': {
                 'ID': '42012319800127691X',
@@ -414,6 +519,7 @@ class TestBaoquanClient(unittest.TestCase):
             },
             'factoids': [
                 {
+                    'unique_id': str(uuid.uuid4()),
                     'type': 'user',
                     'data': {
                         'name': '张三',
@@ -449,6 +555,7 @@ class TestBaoquanClient(unittest.TestCase):
 
     def test_sign2(self):
         response = self._client.create_attestation({
+            'unique_id': str(uuid.uuid4()),
             'template_id': '5Yhus2mVSMnQRXobRJCYgt',
             'identities': {
                 'ID': '42012319800127691X',
@@ -456,6 +563,7 @@ class TestBaoquanClient(unittest.TestCase):
             },
             'factoids': [
                 {
+                    'unique_id': str(uuid.uuid4()),
                     'type': 'product',
                     'data': {
                         'name': '浙金网',
@@ -463,6 +571,7 @@ class TestBaoquanClient(unittest.TestCase):
                     }
                 },
                 {
+                    'unique_id': str(uuid.uuid4()),
                     'type': 'user',
                     'data': {
                         'name': '张三',
@@ -505,6 +614,7 @@ class TestBaoquanClient(unittest.TestCase):
 
     def test_sign3(self):
         response = self._client.create_attestation({
+            'unique_id': str(uuid.uuid4()),
             'template_id': '5Yhus2mVSMnQRXobRJCYgt',
             'identities': {
                 'ID': '42012319800127691X',
@@ -512,6 +622,7 @@ class TestBaoquanClient(unittest.TestCase):
             },
             'factoids': [
                 {
+                    'unique_id': str(uuid.uuid4()),
                     'type': 'product',
                     'data': {
                         'name': '浙金网',
@@ -519,6 +630,7 @@ class TestBaoquanClient(unittest.TestCase):
                     }
                 },
                 {
+                    'unique_id': str(uuid.uuid4()),
                     'type': 'user',
                     'data': {
                         'name': '张三',
